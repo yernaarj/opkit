@@ -1,0 +1,14 @@
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+/**
+ * DTO для логина — идентичен RegisterDto.
+ * Разделяем намеренно: в будущем login может принимать другие поля.
+ */
+export class LoginDto {
+  @IsEmail({}, { message: 'Please provide a valid email address' })
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+}

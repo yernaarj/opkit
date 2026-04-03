@@ -1,23 +1,33 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 /**
  * AppModule — корневой модуль приложения.
  *
- * Здесь только глобальные провайдеры (Config, Prisma).
- * Бизнес-модули (Auth, Tasks) подключаются по мере реализации.
+ * Архитектурные решения:
+ *  - ConfigModule.forRoot({ isGlobal: true }) — .env доступен везде
+ *  - PrismaModule (@Global)                   — БД доступна везде без импорта
+ *  - APP_GUARD: JwtAuthGuard                  — все роуты защищены JWT по умолчанию
+ *    Исключения помечаются декоратором @Public() на уровне контроллера/метода
  */
 @Module({
   imports: [
-    // ConfigModule читает .env и делает переменные доступными через ConfigService
-    // isGlobal: true — не нужно импортировать в каждом модуле отдельно
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-
-    // PrismaModule — глобальный доступ к БД через PrismaService
+    ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    AuthModule,
+    UsersModule,
+  ],
+  providers: [
+    // Глобальный guard — применяется ко всем роутам без @UseGuards()
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}
