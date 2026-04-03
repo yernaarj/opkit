@@ -1,42 +1,35 @@
-// ─────────────────────────────────────────────────────────
-//  Prisma Schema — OpKit
-//
-//  Генерация клиента:  npx prisma generate
-//  Применить миграцию: npx prisma migrate dev --name <name>
-//  Просмотр БД:        npx prisma studio
-// ─────────────────────────────────────────────────────────
+// Prisma Schema — OpKit (Prisma 6 / CommonJS)
+// Генерация клиента:  npx prisma generate
+// Применить миграцию: npx prisma migrate dev --name <name>
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ── User ─────────────────────────────────────────────────
 // Хранит учётные данные; пароль хранится только в виде bcrypt-хеша
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String   // bcrypt hash, NOT plaintext
+  password  String
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
 
-  // Один пользователь — много задач
   tasks     Task[]
 
   @@map("users")
 }
 
-// ── Task ─────────────────────────────────────────────────
-// Задача всегда привязана к конкретному пользователю (userId)
+// Задача всегда привязана к конкретному пользователю
 model Task {
   id          String     @id @default(uuid())
   title       String
-  description String?    // Опциональное описание
+  description String?
 
   // Статусы: TODO -> IN_PROGRESS -> DONE
   status      TaskStatus @default(TODO)
@@ -44,15 +37,12 @@ model Task {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt      @map("updated_at")
 
-  // Связь: задача принадлежит одному пользователю
   userId      String     @map("user_id")
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tasks")
 }
 
-// ── TaskStatus ───────────────────────────────────────────
-// Enum отражает жизненный цикл задачи
 enum TaskStatus {
   TODO
   IN_PROGRESS
