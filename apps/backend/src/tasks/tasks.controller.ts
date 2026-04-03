@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   Request,
@@ -13,6 +14,7 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { GetTasksDto } from './dto/get-tasks.dto';
 
 /**
  * TasksController — CRUD для задач текущего пользователя.
@@ -26,11 +28,19 @@ export class TasksController {
 
   /**
    * GET /api/tasks
-   * Возвращает все задачи авторизованного пользователя.
+   * GET /api/tasks?status=TODO
+   * GET /api/tasks?status=IN_PROGRESS
+   * GET /api/tasks?status=DONE
+   *
+   * Без параметра — возвращает все задачи пользователя.
+   * С параметром — фильтрует по статусу.
    */
   @Get()
-  findAll(@Request() req: { user: { id: string } }) {
-    return this.tasksService.findAll(req.user.id);
+  findAll(
+    @Request() req: { user: { id: string } },
+    @Query() query: GetTasksDto,
+  ) {
+    return this.tasksService.findAll(req.user.id, query);
   }
 
   /**
