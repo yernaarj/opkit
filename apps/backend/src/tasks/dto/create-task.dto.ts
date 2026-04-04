@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, IsOptional, IsUUID, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, IsEnum, MaxLength } from 'class-validator';
+import { TaskPriority } from '@prisma/client';
 
 export class CreateTaskDto {
   @IsString()
@@ -15,4 +16,9 @@ export class CreateTaskDto {
   @IsUUID()
   @IsNotEmpty()
   boardId: string;
+
+  // Приоритет необязателен — по умолчанию MEDIUM (задан в schema)
+  @IsEnum(TaskPriority)
+  @IsOptional()
+  priority?: TaskPriority;
 }
