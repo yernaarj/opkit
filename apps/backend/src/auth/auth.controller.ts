@@ -1,4 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -8,9 +9,11 @@ import { Public } from './decorators/public.decorator';
  * AuthController — публичные роуты аутентификации.
  *
  * Все методы помечены @Public() — они не требуют JWT токена.
- * Остальные роуты приложения защищены глобальным JwtAuthGuard.
+ * @Throttle переопределяет глобальный лимит: не более 5 попыток
+ * регистрации/логина в минуту с одного IP — защита от брутфорса.
  */
 @Controller('auth')
+@Throttle({ default: { ttl: 60_000, limit: 5 } })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

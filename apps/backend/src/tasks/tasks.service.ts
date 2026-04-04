@@ -4,21 +4,31 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TasksGateway } from './tasks.gateway';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { GetTasksDto } from './dto/get-tasks.dto';
 import type { Task } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gateway: TasksGateway,
+  ) {}
 
   /**
-   * Возвращает все задачи текущего пользователя.
-   * Сортируем по дате создания — новые сверху.
+   * Возвращает задачи текущего пользователя.
+   * Если передан query.status — фильтруем по нему.
+   * Пример: GET /api/tasks?status=TODO
    */
-  async findAll(userId: string): Promise<Task[]> {
+  async findAll(userId: string, query: GetTasksDto): Promise<Task[]> {
     return this.prisma.task.findMany({
-      where: { userId },
+      where: {
+        userId,
+        // status undefined → Prisma игнорирует фильтр, возвращает все задачи
+        ...(query.status && { status: query.status }),
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -39,7 +49,8 @@ export class TasksService {
 
   /**
    * Обновляет задачу (title, description, status).
-   * Проверяем что задача принадлежит текущему пользователю.
+   * После успешного обновления эмитит WebSocket событие task:updated
+   * всем подключённым клиентам — это и есть real-time обновление.
    */
   async update(
     taskId: string,
@@ -48,7 +59,7 @@ export class TasksService {
   ): Promise<Task> {
     await this.findOwnedTask(taskId, userId);
 
-    return this.prisma.task.update({
+    const updated = await this.prisma.task.update({
       where: { id: taskId },
       data: {
         // undefined-поля Prisma игнорирует — обновляем только то, что пришло
@@ -57,6 +68,11 @@ export class TasksService {
         ...(dto.status !== undefined && { status: dto.status }),
       },
     });
+
+    // Уведомляем всех подключённых клиентов об изменении задачи
+    this.gateway.emitTaskUpdated(updated);
+
+    return updated;
   }
 
   /**
@@ -65,15 +81,12 @@ export class TasksService {
    */
   async remove(taskId: string, userId: string): Promise<Task> {
     await this.findOwnedTask(taskId, userId);
-
     return this.prisma.task.delete({ where: { id: taskId } });
   }
 
   /**
    * Вспомогательный метод — находит задачу и проверяет владельца.
    * Выбрасывает 404 если задача не найдена, 403 если чужая.
-   *
-   * Используется в update и remove чтобы не дублировать логику.
    */
   private async findOwnedTask(taskId: string, userId: string): Promise<Task> {
     const task = await this.prisma.task.findUnique({ where: { id: taskId } });
@@ -82,7 +95,6 @@ export class TasksService {
       throw new NotFoundException(`Task with id "${taskId}" not found`);
     }
 
-    // Защита: пользователь не может изменить чужую задачу
     if (task.userId !== userId) {
       throw new ForbiddenException('You do not have access to this task');
     }
