@@ -1,11 +1,11 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { TaskStatus } from '@prisma/client';
 
 /**
  * Query-параметры для GET /tasks
- * Пример: GET /api/tasks?status=TODO
- *
- * Если status не передан — возвращаем все задачи пользователя.
+ * Примеры:
+ *   GET /api/tasks?boardId=uuid
+ *   GET /api/tasks?boardId=uuid&status=TODO
  */
 export class GetTasksDto {
   @IsEnum(TaskStatus, {
@@ -13,4 +13,9 @@ export class GetTasksDto {
   })
   @IsOptional()
   status?: TaskStatus;
+
+  // Фильтр по доске — если не передан, возвращаем задачи из всех досок
+  @IsUUID()
+  @IsOptional()
+  boardId?: string;
 }

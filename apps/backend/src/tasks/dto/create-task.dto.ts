@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateTaskDto {
   @IsString()
@@ -6,9 +6,13 @@ export class CreateTaskDto {
   @MaxLength(255)
   title: string;
 
-  // description — необязательное поле
   @IsString()
   @IsOptional()
   @MaxLength(2000)
   description?: string;
+
+  // boardId обязателен — задача всегда привязана к доске
+  @IsUUID()
+  @IsNotEmpty()
+  boardId: string;
 }

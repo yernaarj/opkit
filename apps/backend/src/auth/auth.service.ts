@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { PrismaService } from '../prisma/prisma.service';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { JwtPayload } from './strategies/jwt.strategy';
@@ -19,27 +20,35 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
-   * Регистрация нового пользователя.
-   * Делегирует создание в UsersService (хеширование там же).
-   * Возвращает JWT сразу — пользователь залогинен после регистрации.
+   * Регистрация: создаём пользователя, личную доску и сразу возвращаем JWT.
+   * Личная доска "Мои задачи" создаётся автоматически для каждого нового юзера.
    */
   async register(dto: RegisterDto): Promise<AuthResponse> {
     const user = await this.usersService.create(dto.email, dto.password);
+
+    // Создаём личную доску и добавляем пользователя как участника
+    await this.prisma.board.create({
+      data: {
+        name: 'Мои задачи',
+        ownerId: user.id,
+        members: { create: { userId: user.id } },
+      },
+    });
+
     return this.buildAuthResponse(user.id, user.email);
   }
 
   /**
    * Логин: проверяем email + пароль, возвращаем JWT.
-   * Используем bcrypt.compare — безопасное сравнение хешей.
    */
   async login(dto: LoginDto): Promise<AuthResponse> {
     const user = await this.usersService.findByEmail(dto.email);
 
-    // Одинаковая ошибка для "нет пользователя" и "неверный пароль"
-    // — не даём атакующему определить, существует ли email
+    // Одинаковая ошибка — не раскрываем, существует ли email
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -52,13 +61,8 @@ export class AuthService {
     return this.buildAuthResponse(user.id, user.email);
   }
 
-  /**
-   * Формирует JWT и объект ответа.
-   * Вынесено в приватный метод — переиспользуется в register и login.
-   */
   private buildAuthResponse(userId: string, email: string): AuthResponse {
     const payload: JwtPayload = { sub: userId, email };
-
     return {
       accessToken: this.jwtService.sign(payload),
       user: { id: userId, email },
