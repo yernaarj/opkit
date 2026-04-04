@@ -66,7 +66,10 @@ model Task {
   description String?
 
   // Статусы: TODO -> IN_PROGRESS -> DONE
-  status      TaskStatus @default(TODO)
+  status      TaskStatus   @default(TODO)
+
+  // Приоритет задачи (по умолчанию MEDIUM)
+  priority    TaskPriority @default(MEDIUM)
 
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt      @map("updated_at")
@@ -84,4 +87,11 @@ enum TaskStatus {
   TODO
   IN_PROGRESS
   DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }

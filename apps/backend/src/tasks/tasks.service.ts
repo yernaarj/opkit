@@ -58,6 +58,7 @@ export class TasksService {
       data: {
         title: dto.title,
         description: dto.description,
+        priority: dto.priority,
         userId,
         boardId: dto.boardId,
       },
@@ -77,6 +78,7 @@ export class TasksService {
         ...(dto.title !== undefined && { title: dto.title }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.status !== undefined && { status: dto.status }),
+        ...(dto.priority !== undefined && { priority: dto.priority }),
       },
     });
 
