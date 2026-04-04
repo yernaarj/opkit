@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
+import { BoardsModule } from './boards/boards.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 /**
@@ -35,6 +36,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     AuthModule,
     UsersModule,
     TasksModule,
+    BoardsModule,
   ],
   providers: [
     // Глобальный JWT guard — все роуты защищены по умолчанию

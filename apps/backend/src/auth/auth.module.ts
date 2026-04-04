@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * AuthModule — модуль аутентификации.
@@ -18,6 +19,7 @@ import { UsersModule } from '../users/users.module';
 @Module({
   imports: [
     UsersModule,
+    PrismaModule,
 
     PassportModule,
 
