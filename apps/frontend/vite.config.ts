@@ -8,6 +8,7 @@ export default defineConfig({
   // Proxy API and WebSocket requests to the NestJS backend
   // so the frontend doesn't need CORS handling in development
   server: {
+    host: true,   // bind to 0.0.0.0 so Windows browser can reach WSL
     port: 5173,
     proxy: {
       // REST API
