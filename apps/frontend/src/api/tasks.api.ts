@@ -4,6 +4,7 @@ import type { Task, TaskStatus } from '@/types';
 export interface CreateTaskDto {
   title: string;
   description?: string;
+  boardId: string;
 }
 
 export interface UpdateTaskDto {
@@ -13,9 +14,9 @@ export interface UpdateTaskDto {
 }
 
 export const tasksApi = {
-  getAll: (status?: TaskStatus) =>
+  getAll: (boardId?: string, status?: TaskStatus) =>
     client
-      .get<Task[]>('/tasks', { params: status ? { status } : {} })
+      .get<Task[]>('/tasks', { params: { ...(boardId && { boardId }), ...(status && { status }) } })
       .then((r) => r.data),
 
   create: (dto: CreateTaskDto) =>

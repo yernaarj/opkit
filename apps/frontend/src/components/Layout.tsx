@@ -19,7 +19,7 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="px-6 py-6 overflow-y-auto h-[calc(100vh-57px)]">
         <Outlet />
       </main>
     </div>
