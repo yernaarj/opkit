@@ -37,6 +37,10 @@ export class TasksService {
         ...boardFilter,
         ...(query.status && { status: query.status }),
       },
+      include: {
+        labels: { include: { label: true } },
+        assignee: { select: { id: true, email: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -59,8 +63,13 @@ export class TasksService {
         title: dto.title,
         description: dto.description,
         priority: dto.priority,
+        assigneeId: dto.assigneeId,
         userId,
         boardId: dto.boardId,
+      },
+      include: {
+        labels: { include: { label: true } },
+        assignee: { select: { id: true, email: true } },
       },
     });
   }
@@ -79,6 +88,7 @@ export class TasksService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.priority !== undefined && { priority: dto.priority }),
+        ...(dto.assigneeId !== undefined && { assigneeId: dto.assigneeId }),
       },
     });
 
