@@ -12,13 +12,16 @@ export class CreateTaskDto {
   @MaxLength(2000)
   description?: string;
 
-  // boardId обязателен — задача всегда привязана к доске
   @IsUUID()
   @IsNotEmpty()
   boardId: string;
 
-  // Приоритет необязателен — по умолчанию MEDIUM (задан в schema)
   @IsEnum(TaskPriority)
   @IsOptional()
   priority?: TaskPriority;
+
+  // Исполнитель необязателен
+  @IsUUID()
+  @IsOptional()
+  assigneeId?: string;
 }

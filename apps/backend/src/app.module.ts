@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { BoardsModule } from './boards/boards.module';
+import { LabelsModule } from './labels/labels.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 /**
@@ -37,6 +38,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     UsersModule,
     TasksModule,
     BoardsModule,
+    LabelsModule,
   ],
   providers: [
     // Глобальный JWT guard — все роуты защищены по умолчанию
